@@ -40,8 +40,12 @@ def main(args):
             if userid != message['chat']['id']:
                 if text == '/link':
                     groupid = str(message['chat']['id'])
-                    bot.send_message(chat_id=message['chat']['id'],
-                                     text=bot.encode_url(f'{groupid} {Sign(groupid)}'))
+                    try:
+                        bot.send_message(chat_id=userid,
+                                         text=bot.encode_url(f'{groupid} {Sign(groupid)}'))
+                    except:
+                        bot.send_message(chat_id=message['chat']['id'],
+                                         text='Send me a private message first!')
                 continue
 
             userinfo = people.get(userid)
