@@ -1,0 +1,5 @@
+/bin/
+/foyerbot.egg-info/
+/lib/
+/share/
+__pycache__/
