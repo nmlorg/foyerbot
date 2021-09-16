@@ -1,3 +1,4 @@
+import hmac
 import logging
 import pprint
 import sys
@@ -17,6 +18,9 @@ def main(args):
     bot = ntelebot.bot.Bot(args[1])
     people = {}
 
+    def Sign(s):
+        return hmac.new(bot.token.encode('ascii'), s.encode('ascii'), 'sha1').hexdigest()[:8]
+
     offset = None
     while True:
         updates = bot.get_updates(offset=offset, timeout=10)
@@ -35,8 +39,9 @@ def main(args):
             userid = message['from']['id']
             if userid != message['chat']['id']:
                 if text == '/link':
+                    groupid = str(message['chat']['id'])
                     bot.send_message(chat_id=message['chat']['id'],
-                                     text=bot.encode_url(str(message['chat']['id'])))
+                                     text=bot.encode_url(f'{groupid} {Sign(groupid)}'))
                 continue
 
             userinfo = people.get(userid)
@@ -63,15 +68,21 @@ def main(args):
                 continue
 
             if text:
-                try:
-                    logging.info('Trying to create link for %r.', text)
-                    invite_link = bot.create_chat_invite_link(
-                        chat_id=text, expire_date=time.time() + 60 * 10, member_limit=1)
-                except:
-                    logging.exception('Failed:')
-                    bot.send_message(chat_id=message['chat']['id'], text='\U0001f50a ' + text)
-                else:
-                    bot.send_message(chat_id=message['chat']['id'], text=invite_link['invite_link'])
+                if text.count(' ') == 1:
+                    groupid, sig = text.split(' ')
+                    if hmac.compare_digest(Sign(groupid), sig):
+                        logging.info('Trying to create link for %r.', groupid)
+                        try:
+                            invite_link = bot.create_chat_invite_link(
+                                chat_id=groupid, expire_date=time.time() + 60 * 10, member_limit=1)
+                        except:
+                            logging.exception('Failed:')
+                        else:
+                            bot.send_message(chat_id=message['chat']['id'],
+                                             text=invite_link['invite_link'])
+                            continue
+
+                bot.send_message(chat_id=message['chat']['id'], text='\U0001f50a ' + text)
 
 
 if __name__ == '__main__':
