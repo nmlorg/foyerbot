@@ -1,10 +1,10 @@
-import hmac
 import logging
 import pprint
 import sys
-import time
 
 import ntelebot
+
+from foyerbot import foyer
 
 
 def main(args):
@@ -17,9 +17,6 @@ def main(args):
 
     bot = ntelebot.bot.Bot(args[1])
     people = {}
-
-    def Sign(s):
-        return hmac.new(bot.token.encode('ascii'), s.encode('ascii'), 'sha1').hexdigest()[:8]
 
     offset = None
     while True:
@@ -37,56 +34,9 @@ def main(args):
                 continue
             text = message['text']
             userid = message['from']['id']
-            if userid != message['chat']['id']:
-                if text == '/link':
-                    groupid = str(message['chat']['id'])
-                    try:
-                        bot.send_message(chat_id=userid,
-                                         text=bot.encode_url(f'{groupid} {Sign(groupid)}'))
-                    except:
-                        bot.send_message(chat_id=message['chat']['id'],
-                                         text='Send me a private message first!')
-                continue
+            chatid = message['chat']['id']
 
-            userinfo = people.get(userid)
-            if userinfo is None:
-                people[userid] = userinfo = {}
-
-            if text.startswith('/start '):
-                text = ntelebot.deeplink.decode(text[len('/start '):])
-
-            if userinfo.get('challenge'):
-                if text != userinfo['challenge']:
-                    bot.send_message(chat_id=message['chat']['id'], text='Nope!')
-                    continue
-
-                bot.send_message(chat_id=message['chat']['id'], text='Yep!')
-                userinfo.pop('challenge')
-                userinfo['verified'] = True
-                text = userinfo.pop('initial', '')
-            elif not userinfo.get('verified'):
-                userinfo['initial'] = text
-                userinfo['challenge'] = 'cats'
-                bot.send_message(chat_id=message['chat']['id'],
-                                 text='Type "cats" without the quotes.')
-                continue
-
-            if text:
-                if text.count(' ') == 1:
-                    groupid, sig = text.split(' ')
-                    if hmac.compare_digest(Sign(groupid), sig):
-                        logging.info('Trying to create link for %r.', groupid)
-                        try:
-                            invite_link = bot.create_chat_invite_link(
-                                chat_id=groupid, expire_date=time.time() + 60 * 10, member_limit=1)
-                        except:
-                            logging.exception('Failed:')
-                        else:
-                            bot.send_message(chat_id=message['chat']['id'],
-                                             text=invite_link['invite_link'])
-                            continue
-
-                bot.send_message(chat_id=message['chat']['id'], text='\U0001f50a ' + text)
+            foyer.handle(bot, people, userid, chatid, text)
 
 
 if __name__ == '__main__':
