@@ -94,7 +94,7 @@ Yep!
 
 
 [send_message chat_id=1000]
-https://example.com/chat_id=-1001000002000 expire_date=1000000600.0 member_limit=1
+https://example.com/chat_id=-1001000002000 expire_date=1000000600 member_limit=1
 """
     assert tester.people == {1000: {'verified': True}}
 

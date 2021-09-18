@@ -48,13 +48,13 @@ def handle(bot, people, userid, chatid, text):
             if hmac.compare_digest(sign(bot.token, chatidstr), sig):
                 logging.info('Trying to create link for %r.', chatidstr)
                 try:
-                    invite_link = bot.create_chat_invite_link(chat_id=chatidstr,
-                                                              expire_date=time.time() + 60 * 10,
-                                                              member_limit=1)
+                    info = bot.create_chat_invite_link(chat_id=chatidstr,
+                                                       expire_date=int(time.time()) + 60 * 10,
+                                                       member_limit=1)
                 except:
                     logging.exception('Failed:')
                 else:
-                    bot.send_message(chat_id=chatid, text=invite_link['invite_link'])
+                    bot.send_message(chat_id=chatid, text=info['invite_link'])
                     return
 
         bot.send_message(chat_id=chatid, text='\U0001f50a ' + text)
