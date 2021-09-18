@@ -1,5 +1,8 @@
+/.coverage
+/.tox/
 /bin/
 /foyerbot.egg-info/
+/htmlcov/
 /lib/
 /share/
 __pycache__/
