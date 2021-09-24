@@ -1,3 +1,5 @@
+"""Simple bot to provide Telegram group invite links to users after solving a challenge."""
+
 import hmac
 import logging
 import time
@@ -5,18 +7,23 @@ import time
 import ntelebot
 
 
-def sign(key, s):
-    return hmac.new(key.encode('ascii'), s.encode('ascii'), 'sha1').hexdigest()[:8]
+def sign(key, text):
+    """Generate a hex-encoded HMAC-SHA1-32(key, text)."""
+
+    return hmac.new(key.encode('ascii'), text.encode('ascii'), 'sha1').hexdigest()[:8]
 
 
-def handle(bot, people, userid, chatid, text):
+def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branches
+    """Handle a message sent to bot from userid in chatid containing text."""
+
     if userid != chatid:
         if text == '/link':
             chatidstr = str(chatid)
             try:
                 bot.send_message(chat_id=userid,
                                  text=bot.encode_url(f'{chatidstr} {sign(bot.token, chatidstr)}'))
-            except:
+            except ntelebot.errors.Forbidden:
+                logging.exception('Failed:')
                 bot.send_message(chat_id=chatid, text='Send me a private message first!')
         return
 
@@ -51,7 +58,7 @@ def handle(bot, people, userid, chatid, text):
                     info = bot.create_chat_invite_link(chat_id=chatidstr,
                                                        expire_date=int(time.time()) + 60 * 10,
                                                        member_limit=1)
-                except:
+                except ntelebot.errors.Forbidden:
                     logging.exception('Failed:')
                 else:
                     bot.send_message(chat_id=chatid, text=info['invite_link'])

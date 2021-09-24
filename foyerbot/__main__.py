@@ -1,3 +1,5 @@
+"""Simple bot to provide Telegram group invite links to users after solving a challenge."""
+
 import logging
 import pprint
 import sys
@@ -7,7 +9,7 @@ import ntelebot
 from foyerbot import foyer
 
 
-def main(args):
+def main(args):  # pylint: disable=missing-function-docstring
     logging.basicConfig(format='%(asctime)s %(levelname)s %(filename)s:%(lineno)s] %(message)s',
                         level=logging.INFO)
 
