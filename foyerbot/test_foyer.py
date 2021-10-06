@@ -28,11 +28,14 @@ class MockBot(ntelebot.bot.Bot):  # pylint: disable=missing-class-docstring
 
     def __getattr__(self, key):
 
-        def func(text=None, **kwargs):
+        def func(text=None, caption=None, **kwargs):
             self.__tester.actions.append('')
             self.__tester.actions.append(f'[{key} {self._encode_kwargs(kwargs)}]')
             if text:
                 self.__tester.actions.append(text)
+                self.__tester.actions.append('')
+            if caption:
+                self.__tester.actions.append(caption)
                 self.__tester.actions.append('')
 
         return func
@@ -54,7 +57,9 @@ class FoyerTester:  # pylint: disable=missing-class-docstring,too-few-public-met
 
 
 @pytest.fixture(name='tester')
-def _tester():
+def _tester(monkeypatch):
+    monkeypatch.setattr('foyerbot.foyer.CAPTCHA.generate', lambda text: f'[Image: {text}]')
+
     return FoyerTester()
 
 
@@ -85,8 +90,8 @@ def test_request(monkeypatch, tester):
     """Simulate a well-formed request (including verification)."""
 
     assert tester.handle(USERID, USERID, '/start LTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU') == """
-[send_message chat_id=1000]
-Type "cats" without the quotes.
+[send_photo chat_id=1000 photo=[Image: cats]]
+Type the letters above.
 """
     assert tester.people == {1000: {'challenge': 'cats', 'initial': '-1001000002000 292ea3ae'}}
 
@@ -113,8 +118,8 @@ def test_unknown(tester):
     """Verify the bot just echos unexpected messages."""
 
     assert tester.handle(USERID, USERID, 'robots') == """
-[send_message chat_id=1000]
-Type "cats" without the quotes.
+[send_photo chat_id=1000 photo=[Image: cats]]
+Type the letters above.
 """
 
     assert tester.handle(USERID, USERID, 'cats') == """

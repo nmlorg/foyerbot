@@ -3,13 +3,14 @@ import setuptools
 
 setuptools.setup(
     name='foyerbot',
-    version='0.0.1',
+    version='0.0.2',
     author='Daniel Reed',
     author_email='nmlorg@gmail.com',
     description='https://t.me/foyerbot',
     url='https://github.com/nmlorg/foyerbot',
     packages=setuptools.find_packages(include=('foyerbot', 'foyerbot.*')),
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=[
-        'ntelebot',
+        'captcha',
+        'ntelebot >= 0.4.1',
     ])

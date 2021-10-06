@@ -4,7 +4,10 @@ import hmac
 import logging
 import time
 
+import captcha.image
 import ntelebot
+
+CAPTCHA = captcha.image.ImageCaptcha()
 
 
 def sign(key, text):
@@ -46,7 +49,8 @@ def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branc
     elif not userinfo.get('verified'):
         userinfo['initial'] = text
         userinfo['challenge'] = 'cats'
-        bot.send_message(chat_id=chatid, text='Type "cats" without the quotes.')
+        img = CAPTCHA.generate(userinfo['challenge'])
+        bot.send_photo(chat_id=chatid, photo=img, caption='Type the letters above.')
         return
 
     if text:
