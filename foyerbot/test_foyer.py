@@ -58,7 +58,8 @@ class FoyerTester:  # pylint: disable=missing-class-docstring,too-few-public-met
 
 @pytest.fixture(name='tester')
 def _tester(monkeypatch):
-    monkeypatch.setattr('foyerbot.foyer.CAPTCHA.generate', lambda text: f'[Image: {text}]')
+    monkeypatch.setattr('foyerbot.phrase.generate', lambda: ('2 + 2', '4', 'Solve!'))
+    monkeypatch.setattr('foyerbot.image.render', lambda text: f'[Image: {text}]')
 
     return FoyerTester()
 
@@ -90,20 +91,20 @@ def test_request(monkeypatch, tester):
     """Simulate a well-formed request (including verification)."""
 
     assert tester.handle(USERID, USERID, '/start LTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU') == """
-[send_photo chat_id=1000 photo=[Image: cats]]
-Type the letters above.
+[send_photo chat_id=1000 photo=[Image: 2 + 2]]
+Solve!
 """
-    assert tester.people == {1000: {'challenge': 'cats', 'initial': '-1001000002000 292ea3ae'}}
+    assert tester.people == {1000: {'challenge': '4', 'initial': '-1001000002000 292ea3ae'}}
 
     assert tester.handle(USERID, USERID, 'robots') == """
 [send_message chat_id=1000]
 Nope!
 """
-    assert tester.people == {1000: {'challenge': 'cats', 'initial': '-1001000002000 292ea3ae'}}
+    assert tester.people == {1000: {'challenge': '4', 'initial': '-1001000002000 292ea3ae'}}
 
     monkeypatch.setattr('time.time', lambda: 1e9)
 
-    assert tester.handle(USERID, USERID, 'cats') == """
+    assert tester.handle(USERID, USERID, '4') == """
 [send_message chat_id=1000]
 Yep!
 
@@ -118,11 +119,11 @@ def test_unknown(tester):
     """Verify the bot just echos unexpected messages."""
 
     assert tester.handle(USERID, USERID, 'robots') == """
-[send_photo chat_id=1000 photo=[Image: cats]]
-Type the letters above.
+[send_photo chat_id=1000 photo=[Image: 2 + 2]]
+Solve!
 """
 
-    assert tester.handle(USERID, USERID, 'cats') == """
+    assert tester.handle(USERID, USERID, '4') == """
 [send_message chat_id=1000]
 Yep!
 

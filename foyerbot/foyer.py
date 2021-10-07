@@ -4,10 +4,10 @@ import hmac
 import logging
 import time
 
-import captcha.image
 import ntelebot
 
-CAPTCHA = captcha.image.ImageCaptcha()
+from foyerbot import image
+from foyerbot import phrase
 
 
 def sign(key, text):
@@ -48,9 +48,11 @@ def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branc
         text = userinfo.pop('initial', '')
     elif not userinfo.get('verified'):
         userinfo['initial'] = text
-        userinfo['challenge'] = 'cats'
-        img = CAPTCHA.generate(userinfo['challenge'])
-        bot.send_photo(chat_id=chatid, photo=img, caption='Type the letters above.')
+        question, answer, prompt = phrase.generate()
+        userinfo['challenge'] = answer
+        img = image.render(question)
+        logging.info('Sending %r (%s); expecting %r.', question, prompt, answer)
+        bot.send_photo(chat_id=chatid, photo=img, caption=prompt)
         return
 
     if text:

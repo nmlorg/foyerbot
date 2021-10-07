@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='foyerbot',
-    version='0.0.2',
+    version='0.0.3',
     author='Daniel Reed',
     author_email='nmlorg@gmail.com',
     description='https://t.me/foyerbot',
