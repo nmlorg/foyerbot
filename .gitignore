@@ -2,6 +2,7 @@
 /.tox/
 /bin/
 /foyerbot.egg-info/
+/foyerbot/phrases.txt
 /htmlcov/
 /lib/
 /share/

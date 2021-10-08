@@ -34,6 +34,6 @@ def _leetify(text):
 def generate():
     """Create a hard-to-read phrase made of real English words."""
 
-    num = 3
-    answer = ' '.join(words.sample(num))
+    answer = words.choose()
+    num = answer.count(' ') + 1
     return _leetify(answer), answer, f'Type the {num} English words.'

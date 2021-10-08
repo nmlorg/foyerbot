@@ -8,6 +8,7 @@ import ntelebot
 
 from foyerbot import image
 from foyerbot import phrase
+from foyerbot import words
 
 
 def sign(key, text):
@@ -28,6 +29,8 @@ def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branc
             except ntelebot.errors.Forbidden:
                 logging.exception('Failed:')
                 bot.send_message(chat_id=chatid, text='Send me a private message first!')
+        else:
+            words.learn(text)
         return
 
     userinfo = people.get(userid)
