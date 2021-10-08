@@ -17,21 +17,32 @@ def sign(key, text):
     return hmac.new(key.encode('ascii'), text.encode('ascii'), 'sha1').hexdigest()[:8]
 
 
-def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branches
+def handle(bot, people, userid, chatid, text):
     """Handle a message sent to bot from userid in chatid containing text."""
 
     if userid != chatid:
-        if text == '/link':
-            chatidstr = str(chatid)
-            try:
-                bot.send_message(chat_id=userid,
-                                 text=bot.encode_url(f'{chatidstr} {sign(bot.token, chatidstr)}'))
-            except ntelebot.errors.Forbidden:
-                logging.exception('Failed:')
-                bot.send_message(chat_id=chatid, text='Send me a private message first!')
-        else:
-            words.learn(text)
-        return
+        return group(bot, userid, chatid, text)
+
+    return private(bot, people, userid, text)
+
+
+def group(bot, userid, chatid, text):
+    """Handle a message sent to a group chat."""
+
+    if text == '/link':
+        chatidstr = str(chatid)
+        try:
+            bot.send_message(chat_id=userid,
+                             text=bot.encode_url(f'{chatidstr} {sign(bot.token, chatidstr)}'))
+        except ntelebot.errors.Forbidden:
+            logging.exception('Failed:')
+            bot.send_message(chat_id=chatid, text='Send me a private message first!')
+    else:
+        words.learn(text)
+
+
+def private(bot, people, userid, text):
+    """Handle a private message."""
 
     userinfo = people.get(userid)
     if userinfo is None:
@@ -42,10 +53,10 @@ def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branc
 
     if userinfo.get('challenge'):
         if text != userinfo['challenge']:
-            bot.send_message(chat_id=chatid, text='Nope!')
+            bot.send_message(chat_id=userid, text='Nope!')
             return
 
-        bot.send_message(chat_id=chatid, text='Yep!')
+        bot.send_message(chat_id=userid, text='Yep!')
         userinfo.pop('challenge')
         userinfo['verified'] = True
         text = userinfo.pop('initial', '')
@@ -55,7 +66,7 @@ def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branc
         userinfo['challenge'] = answer
         img = image.render(question)
         logging.info('Sending %r (%s); expecting %r.', question, prompt, answer)
-        bot.send_photo(chat_id=chatid, photo=img, caption=prompt)
+        bot.send_photo(chat_id=userid, photo=img, caption=prompt)
         return
 
     if text:
@@ -70,7 +81,7 @@ def handle(bot, people, userid, chatid, text):  # pylint: disable=too-many-branc
                 except ntelebot.errors.Forbidden:
                     logging.exception('Failed:')
                 else:
-                    bot.send_message(chat_id=chatid, text=info['invite_link'])
+                    bot.send_message(chat_id=userid, text=info['invite_link'])
                     return
 
-        bot.send_message(chat_id=chatid, text='\U0001f50a ' + text)
+        bot.send_message(chat_id=userid, text='\U0001f50a ' + text)
