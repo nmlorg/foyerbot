@@ -1,0 +1,6 @@
+[BASIC]
+min-public-methods=1
+
+[MESSAGES CONTROL]
+disable=
+    inconsistent-return-statements,

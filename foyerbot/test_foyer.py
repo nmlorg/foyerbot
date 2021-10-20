@@ -73,8 +73,9 @@ def test_sign(tester):
 
     sig = foyer.sign(tester.bot.token, str(GROUPID))
     assert sig == '292ea3ae'
-    deeplink = f'{GROUPID} {sig}'
-    assert base64.urlsafe_b64encode(deeplink.encode('ascii')) == b'LTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU='
+    deeplink = f'/v {GROUPID} {sig}'
+    assert base64.urlsafe_b64encode(
+        deeplink.encode('ascii')) == b'L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU='
 
 
 def test_link(tester):
@@ -83,54 +84,33 @@ def test_link(tester):
     assert tester.handle(USERID, GROUPID, '/dummy') == ''
     assert tester.handle(USERID, GROUPID, '/link') == """
 [send_message chat_id=1000]
-https://t.me/test12345678bot?start=LTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU
+https://t.me/test12345678bot?start=L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU
 """
 
 
 def test_request(monkeypatch, tester):
     """Simulate a well-formed request (including verification)."""
 
-    assert tester.handle(USERID, USERID, '/start LTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU') == """
+    assert tester.handle(USERID, USERID, '/start L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU') == """
 [send_photo chat_id=1000 photo=[Image: 2 + 2]]
 Solve!
 """
-    assert tester.people == {1000: {'challenge': '4', 'initial': '-1001000002000 292ea3ae'}}
 
     assert tester.handle(USERID, USERID, 'robots') == """
 [send_message chat_id=1000]
-Nope!
+Solve!
 """
-    assert tester.people == {1000: {'challenge': '4', 'initial': '-1001000002000 292ea3ae'}}
 
     monkeypatch.setattr('time.time', lambda: 1e9)
 
     assert tester.handle(USERID, USERID, '4') == """
 [send_message chat_id=1000]
-Yep!
-
-
-[send_message chat_id=1000]
 https://example.com/chat_id=-1001000002000 expire_date=1000000600 member_limit=1
 """
-    assert tester.people == {1000: {'verified': True}}
 
 
 def test_unknown(tester):
     """Verify the bot just echos unexpected messages."""
-
-    assert tester.handle(USERID, USERID, 'robots') == """
-[send_photo chat_id=1000 photo=[Image: 2 + 2]]
-Solve!
-"""
-
-    assert tester.handle(USERID, USERID, '4') == """
-[send_message chat_id=1000]
-Yep!
-
-
-[send_message chat_id=1000]
-🔊 robots
-"""
 
     assert tester.handle(USERID, USERID, 'spaceships') == """
 [send_message chat_id=1000]
