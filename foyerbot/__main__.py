@@ -1,23 +1,23 @@
 """Simple bot to provide Telegram group invite links to users after solving a challenge."""
 
+import argparse
 import logging
 import pprint
-import sys
 
 import ntelebot
 
 from foyerbot import foyer
 
 
-def main(args):  # pylint: disable=missing-function-docstring
+def main():  # pylint: disable=missing-function-docstring
+    parser = argparse.ArgumentParser()
+    parser.add_argument('token')
+    args = parser.parse_args()
+
     logging.basicConfig(format='%(asctime)s %(levelname)s %(filename)s:%(lineno)s] %(message)s',
                         level=logging.INFO)
 
-    if len(args) != 2:
-        print(f'Usage: {args[0]} BOT:TOKEN')
-        return 1
-
-    bot = ntelebot.bot.Bot(args[1])
+    bot = ntelebot.bot.Bot(args.token)
     people = {}
 
     offset = None
@@ -28,7 +28,7 @@ def main(args):  # pylint: disable=missing-function-docstring
 
         offset = updates[-1]['update_id'] + 1
         for update in updates:
-            pprint.pprint(update)
+            logging.info('\n%s', pprint.pformat(update))
             if not update.get('message'):
                 continue
             message = update['message']
@@ -42,4 +42,4 @@ def main(args):  # pylint: disable=missing-function-docstring
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    main()
