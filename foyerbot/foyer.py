@@ -85,6 +85,23 @@ class _InviteLink(_Step):
         return True
 
 
+class _ApproveCJR(_Step):
+
+    def __init__(self, groupid):
+        self.groupid = groupid
+
+    def handle(self, bot, userid, text):
+        logging.info('Trying to allow user %r to join chat %r.', userid, self.groupid)
+        try:
+            bot.approve_chat_join_request(chat_id=self.groupid, user_id=userid)
+        except ntelebot.errors.Forbidden:
+            logging.exception('Failed:')
+            bot.send_message(
+                chat_id=userid,
+                text=f"Sorry, something went wrong trying to allow you to join {self.groupid}.")
+        return True
+
+
 def sign(key, text):
     """Generate a hex-encoded HMAC-SHA1-32(key, text)."""
 
@@ -104,6 +121,18 @@ def group(bot, userid, chatid, text):
             bot.send_message(chat_id=chatid, text='Send me a private message first!')
     else:
         words.learn(text)
+
+
+def chat_join_request(bot, people, userid, chatid):
+    """Handle a user clicking an invite link with Approve New Members set."""
+
+    userinfo = people.get(userid)
+    if userinfo is None:
+        people[userid] = userinfo = {}
+
+    userinfo['steps'] = [_Captcha(), _ApproveCJR(chatid)]
+
+    return private(bot, people, userid, '')
 
 
 def private(bot, people, userid, text):

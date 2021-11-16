@@ -1,8 +1,8 @@
 """Special runner for .transcript files."""
 
 import difflib
-import json
 import re
+import shlex
 import urllib
 
 import ntelebot
@@ -77,8 +77,10 @@ class TranscriptTester:  # pylint: disable=missing-class-docstring
     def handle(self, line, update):
         """Record a parsed transcript line, then run it through the bot's top-level handler."""
 
-        if update.get('message'):
-            self.check_chat(update['message']['chat']['id'])
+        assert len(update) == 1
+        message = next(iter(update.values()))
+        if message.get('chat'):
+            self.check_chat(message['chat']['id'])
         self.expected.append(line)
         self.actual.append(line)
         __main__.handle(self.bot, self.people, update)
@@ -121,17 +123,19 @@ class TranscriptFile(pytest.File):
                     tester.reset()
                 continue
 
-            if line.startswith('{'):
-                update = json.loads(line)
-                tester.handle(line, update)
-                continue
-
             ret = re.search('^user([0-9]+):  (.+)$', line)
             if ret:
                 userid, text = ret.groups()
                 userid = int(userid)
-                message = {'from': {'id': userid}, 'chat': {'id': chatid}, 'text': text}
-                tester.handle(line, {'message': message})
+                if text.startswith('[') and text.endswith(']'):
+                    message_type, *args = shlex.split(text[1:-1])
+                    message = dict(arg.split('=', 1) for arg in args)
+                else:
+                    message_type = 'message'
+                    message = {'text': text}
+                message['from'] = {'id': userid}
+                message['chat'] = {'id': chatid}
+                tester.handle(line, {message_type: message})
                 continue
 
             ret = re.search(r'^\[(-?[0-9]+)\]$', line)

@@ -12,6 +12,16 @@ from foyerbot import foyer
 def handle(bot, people, update):  # pylint: disable=missing-function-docstring
     logging.info('\n%s', pprint.pformat(update))
 
+    chat_join_request = update.get('chat_join_request')
+    if chat_join_request:
+        if not chat_join_request.get('from') or not chat_join_request.get('chat'):
+            return
+        userid = chat_join_request['from']['id']
+        chatid = chat_join_request['chat']['id']
+
+        foyer.chat_join_request(bot, people, userid, chatid)
+        return
+
     message = update.get('message')
     if message:
         if not message.get('text') or not message.get('from') or not message.get('chat'):
