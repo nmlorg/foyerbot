@@ -9,6 +9,23 @@ import ntelebot
 from foyerbot import foyer
 
 
+def handle(bot, people, update):  # pylint: disable=missing-function-docstring
+    logging.info('\n%s', pprint.pformat(update))
+
+    message = update.get('message')
+    if message:
+        if not message.get('text') or not message.get('from') or not message.get('chat'):
+            return
+        text = message['text']
+        userid = message['from']['id']
+        chatid = message['chat']['id']
+
+        if userid != chatid:
+            foyer.group(bot, userid, chatid, text)
+        else:
+            foyer.private(bot, people, userid, text)
+
+
 def main():  # pylint: disable=missing-function-docstring
     parser = argparse.ArgumentParser()
     parser.add_argument('token')
@@ -28,17 +45,7 @@ def main():  # pylint: disable=missing-function-docstring
 
         offset = updates[-1]['update_id'] + 1
         for update in updates:
-            logging.info('\n%s', pprint.pformat(update))
-            if not update.get('message'):
-                continue
-            message = update['message']
-            if not message.get('text') or not message.get('from') or not message.get('chat'):
-                continue
-            text = message['text']
-            userid = message['from']['id']
-            chatid = message['chat']['id']
-
-            foyer.handle(bot, people, userid, chatid, text)
+            handle(bot, people, update)
 
 
 if __name__ == '__main__':

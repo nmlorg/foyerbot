@@ -91,15 +91,6 @@ def sign(key, text):
     return hmac.new(key.encode('ascii'), text.encode('ascii'), 'sha1').hexdigest()[:8]
 
 
-def handle(bot, people, userid, chatid, text):
-    """Handle a message sent to bot from userid in chatid containing text."""
-
-    if userid != chatid:
-        return group(bot, userid, chatid, text)
-
-    return private(bot, people, userid, text)
-
-
 def group(bot, userid, chatid, text):
     """Handle a message sent to a group chat."""
 
