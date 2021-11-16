@@ -1,14 +1,6 @@
 # Tests for foyerbot.foyer.
 
 
-# Simulate a user typing /link in a group chat.
-[-1001000002000]
-user1000:  /dummy
-user1000:  /link
-[1000]
-test12345678bot:  https://t.me/test12345678bot?start=L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU
-
-
 # Verify the bot just echos unexpected private messages.
 [1000]
 user1000:  spaceships
@@ -16,6 +8,10 @@ test12345678bot:  🔊 spaceships
 
 
 # Simulate a legacy /v interaction.
+[-1001000002000]
+user2000:  /link
+[2000]
+test12345678bot:  https://t.me/test12345678bot?start=L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU
 [1000]
 user1000:  /start L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU
 test12345678bot:  [send_photo photo=[Image: 2 + 2]]

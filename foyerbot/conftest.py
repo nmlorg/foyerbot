@@ -106,21 +106,25 @@ class TranscriptFile(pytest.File):
         monkeypatch.setattr('time.time', lambda: 1e9)
 
         tester = TranscriptTester()
+        lastcomment = ''
         chatid = -1
-        count = 0
+
+        def gen():
+            ret = TranscriptItem.from_parent(self,
+                                             name=lastcomment.rstrip('.').replace('.', '\u2024'),
+                                             actual=tester.actual,
+                                             expected=tester.expected)
+            tester.reset()
+            return ret
 
         for line in lines:
             if line.startswith('#'):
+                lastcomment = line[1:].strip()
                 continue
 
             if not line:
                 if tester.expected:
-                    count += 1
-                    yield TranscriptItem.from_parent(self,
-                                                     name=f'test{count}',
-                                                     actual=tester.actual,
-                                                     expected=tester.expected)
-                    tester.reset()
+                    yield gen()
                 continue
 
             ret = re.search('^user([0-9]+):  (.+)$', line)
@@ -147,12 +151,7 @@ class TranscriptFile(pytest.File):
             tester.expected.append(line)
 
         if tester.expected:
-            count += 1
-            yield TranscriptItem.from_parent(self,
-                                             name=f'test{count}',
-                                             actual=tester.actual,
-                                             expected=tester.expected)
-            tester.reset()
+            yield gen()
 
         monkeypatch.undo()
 
