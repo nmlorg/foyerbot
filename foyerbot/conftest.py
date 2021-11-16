@@ -98,6 +98,11 @@ class TranscriptFile(pytest.File):
         with self.fspath.open() as fobj:
             lines = fobj.read().splitlines()
 
+        monkeypatch = pytest.MonkeyPatch()
+        monkeypatch.setattr('foyerbot.phrase.generate', lambda: ('2 + 2', '4', 'Solve!'))
+        monkeypatch.setattr('foyerbot.image.render', lambda text: f'[Image: {text}]')
+        monkeypatch.setattr('time.time', lambda: 1e9)
+
         tester = TranscriptTester()
         chatid = -1
         count = 0
@@ -144,6 +149,8 @@ class TranscriptFile(pytest.File):
                                              actual=tester.actual,
                                              expected=tester.expected)
             tester.reset()
+
+        monkeypatch.undo()
 
 
 class TranscriptItem(pytest.Item):

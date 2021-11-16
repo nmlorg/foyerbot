@@ -13,3 +13,14 @@ test12345678bot:  https://t.me/test12345678bot?start=L3YgLTEwMDEwMDAwMDIwMDAgMjk
 [1000]
 user1000:  spaceships
 test12345678bot:  🔊 spaceships
+
+
+# Simulate a well-formed request (including verification).
+[1000]
+user1000:  /start L3YgLTEwMDEwMDAwMDIwMDAgMjkyZWEzYWU
+test12345678bot:  [send_photo photo=[Image: 2 + 2]]
+                  Solve!
+user1000:  robots
+test12345678bot:  Solve!
+user1000:  4
+test12345678bot:  https://example.com/?chat_id=-1001000002000&expire_date=1000000600&member_limit=1
